@@ -92,11 +92,11 @@ void ARPGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 
 		switch (OtherComp->GetCollisionObjectType()) {
 			case ECC_Pawn:
-				UE_LOG(LogTemp, Warning, TEXT("IS PAWN"));
+				UGameplayStatics::ApplyDamage(OtherActor, ProjectileData->BaseDamage, GetInstigatorController(), GetInstigator(), ProjectileData->DamageTypeClass);
 			case ECC_Destructible:
-				UE_LOG(LogTemp, Warning, TEXT("IS DESTRUCTIBLE"));
+				OtherActor->Destroy();
 			case ECC_WorldStatic:
-				UE_LOG(LogTemp, Warning, TEXT("IS STATIC"));
+				UE_LOG(LogTemp, Warning, TEXT("IS STATIC DO NOTHING"));
 			/*default:
 				UE_LOG(LogTemp, Warning, TEXT("Collision Type: %s"), OtherComp->GetCollisionObjectType());*/
 		}

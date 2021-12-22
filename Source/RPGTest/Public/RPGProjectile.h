@@ -41,6 +41,9 @@ struct FProjectileData : public FTableRowBase {
 	float BaseDamage;
 
 	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UDamageType> DamageTypeClass;
+
+	UPROPERTY(EditAnywhere)
 	float InitialSpeed;
 
 	UPROPERTY(EditAnywhere)
