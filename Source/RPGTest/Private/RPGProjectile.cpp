@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ARPGProjectile::ARPGProjectile()
@@ -15,13 +16,14 @@ ARPGProjectile::ARPGProjectile()
 	CollisionComp->InitSphereRadius(5.0f);
 	CollisionComp->AlwaysLoadOnClient = true;
 	CollisionComp->AlwaysLoadOnServer = true;
-	//CollisionComp->bTraceComplexOnMove = true;
+	//TODO: Fix collision with owner
+	CollisionComp->IgnoreActorWhenMoving(GetInstigator(), true);
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComp->SetCollisionObjectType(COLLISION_PROJECTILE);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Block);
 	CollisionComp->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Ignore);
 	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-	//CollisionComp->OnComponentHit.AddDynamic(this, &ARPGProjectile::OnHit);
+	CollisionComp->OnComponentHit.AddDynamic(this, &ARPGProjectile::OnHit);
 	RootComponent = CollisionComp;
 
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
@@ -43,7 +45,6 @@ ARPGProjectile::ARPGProjectile()
 	AOECollisionComp->InitSphereRadius(20.0f);
 	AOECollisionComp->AlwaysLoadOnClient = true;
 	AOECollisionComp->AlwaysLoadOnServer = true;
-	//CollisionComp->bTraceComplexOnMove = true;
 	AOECollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	AOECollisionComp->SetCollisionObjectType(COLLISION_PROJECTILE);
 	AOECollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
@@ -71,6 +72,7 @@ void ARPGProjectile::BeginPlay()
 		ProjectileData = ProjectileDataTable->FindRow<FProjectileData>(ProjectileRowName, ProjectileRowName.ToString());
 		MovementComp->InitialSpeed = ProjectileData->InitialSpeed;
 		MovementComp->MaxSpeed = ProjectileData->MaxSpeed;
+		MovementComp->ProjectileGravityScale = ProjectileData->Gravity;
 
 		ProjectileEffectsData = ProjectileData->Effects;
 		ParticleComp->SetTemplate(ProjectileEffectsData.BaseEffect);
@@ -79,6 +81,37 @@ void ARPGProjectile::BeginPlay()
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Either the Datatable or the Row name is undefined"));
 	}
+}
+
+void ARPGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+
+	if (OtherActor != nullptr && OtherActor != this && OtherActor != GetInstigator())
+	{
+		
+
+		switch (OtherComp->GetCollisionObjectType()) {
+			case ECC_Pawn:
+				UE_LOG(LogTemp, Warning, TEXT("IS PAWN"));
+			case ECC_Destructible:
+				UE_LOG(LogTemp, Warning, TEXT("IS DESTRUCTIBLE"));
+			case ECC_WorldStatic:
+				UE_LOG(LogTemp, Warning, TEXT("IS STATIC"));
+			/*default:
+				UE_LOG(LogTemp, Warning, TEXT("Collision Type: %s"), OtherComp->GetCollisionObjectType());*/
+		}
+		MultiCastPlayImpactEffect();
+		if (ProjectileData->bDestroyOnImpact)
+		{
+			Destroy();
+		}
+	}
+}
+
+void ARPGProjectile::MultiCastPlayImpactEffect_Implementation()
+{
+
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileEffectsData.ImpactEffect, GetActorTransform());
 }
 
 // Called every frame

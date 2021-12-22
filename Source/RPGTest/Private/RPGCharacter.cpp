@@ -14,12 +14,13 @@ ARPGCharacter::ARPGCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	this->bUseControllerRotationYaw = false;
+	//this->bUseControllerRotationYaw = false;
 	
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->SetupAttachment(RootComponent);
 
+	
 	SpringArmComp->bUsePawnControlRotation = false;
 	SpringArmComp->bDoCollisionTest = false;
 	SpringArmComp->bInheritPitch = false;
@@ -68,11 +69,14 @@ void ARPGCharacter::Shoot()
 
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.Instigator = this;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			
 
 
 			FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 			World->SpawnActor<ARPGProjectile>(ProjectileClass, SpawnTransform, ActorSpawnParams);
+			
 
 		}
 	}

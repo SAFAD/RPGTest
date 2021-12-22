@@ -50,6 +50,9 @@ struct FProjectileData : public FTableRowBase {
 	float Gravity;
 
 	UPROPERTY(EditAnywhere)
+	bool bDestroyOnImpact;
+
+	UPROPERTY(EditAnywhere)
 	FProjectileEffectsData Effects;
 
 };
@@ -93,6 +96,13 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	/** called when projectile hits something */
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastPlayImpactEffect();
 
 public:	
 	// Called every frame
