@@ -15,7 +15,7 @@ ARPGProjectile::ARPGProjectile()
 	CollisionComp->InitSphereRadius(5.0f);
 	CollisionComp->AlwaysLoadOnClient = true;
 	CollisionComp->AlwaysLoadOnServer = true;
-	CollisionComp->bTraceComplexOnMove = true;
+	//CollisionComp->bTraceComplexOnMove = true;
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComp->SetCollisionObjectType(COLLISION_PROJECTILE);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Block);
@@ -39,6 +39,17 @@ ARPGProjectile::ARPGProjectile()
 	MovementComp->MaxSpeed = 3000.f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bShouldBounce = false;
+
+	AOECollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("AOESphereComp"));
+	AOECollisionComp->InitSphereRadius(20.0f);
+	AOECollisionComp->AlwaysLoadOnClient = true;
+	AOECollisionComp->AlwaysLoadOnServer = true;
+	//CollisionComp->bTraceComplexOnMove = true;
+	AOECollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	AOECollisionComp->SetCollisionObjectType(COLLISION_PROJECTILE);
+	AOECollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
+	AOECollisionComp->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Ignore);
+	AOECollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;

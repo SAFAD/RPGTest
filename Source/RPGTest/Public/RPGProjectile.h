@@ -4,12 +4,50 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
 #include "RPGProjectile.generated.h"
 
 class USphereComponent;
 class UParticleSystemComponent;
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
+class UDataTable;
+
+USTRUCT(BlueprintType)
+struct FProjectileEffectsData : public FTableRowBase {
+
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+		FString Name;
+
+	UPROPERTY(EditAnywhere)
+		class UParticleSystem* BaseEffect;
+
+	UPROPERTY(EditAnywhere)
+		class UParticleSystem* ImpactEffect;
+
+};
+
+USTRUCT(BlueprintType)
+struct FProjectileData : public FTableRowBase {
+
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FString Name;
+
+	UPROPERTY(EditAnywhere)
+	class UTexture* Icon;
+
+	UPROPERTY(EditAnywhere)
+	float BaseDamage;
+
+	UPROPERTY(EditAnywhere)
+	FProjectileEffectsData Effects;
+
+};
+
 
 UCLASS()
 class RPGTEST_API ARPGProjectile : public AActor
@@ -29,9 +67,17 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 		UStaticMeshComponent* MeshComp;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
+		USphereComponent* AOECollisionComp;
+	
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		UProjectileMovementComponent* MovementComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+		UDataTable* ProjectileDataTable;
+	UPROPERTY(EditDefaultsOnly, Category=Projectile)
+		FString ProjectileRowName;
 
 protected:
 	// Called when the game starts or when spawned
