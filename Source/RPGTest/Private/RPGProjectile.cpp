@@ -29,7 +29,6 @@ ARPGProjectile::ARPGProjectile()
 	MeshComp->SetupAttachment(RootComponent);
 
 	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
-	//ParticleComp->SetTemplate(TrailEffect);
 	ParticleComp->SetupAttachment(RootComponent);
 
 	// Use a ProjectileMovementComponent to govern this projectile's movement
@@ -51,8 +50,8 @@ ARPGProjectile::ARPGProjectile()
 	AOECollisionComp->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Ignore);
 	AOECollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
 
-	// Die after 3 seconds by default
-	InitialLifeSpan = 3.0f;
+	// Die after 10 seconds by default, don't want this to last forever as it will eventually crash the server
+	InitialLifeSpan = 10.0f;
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PrePhysics;
@@ -72,6 +71,10 @@ void ARPGProjectile::BeginPlay()
 		ProjectileData = ProjectileDataTable->FindRow<FProjectileData>(ProjectileRowName, ProjectileRowName.ToString());
 		MovementComp->InitialSpeed = ProjectileData->InitialSpeed;
 		MovementComp->MaxSpeed = ProjectileData->MaxSpeed;
+
+		ProjectileEffectsData = ProjectileData->Effects;
+		ParticleComp->SetTemplate(ProjectileEffectsData.BaseEffect);
+
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Either the Datatable or the Row name is undefined"));

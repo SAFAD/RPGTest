@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "RPGProjectile.h"
 
 
 // Sets default values
@@ -12,6 +13,9 @@ ARPGCharacter::ARPGCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	this->bUseControllerRotationYaw = false;
+	
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -47,6 +51,45 @@ void ARPGCharacter::MoveRight(float Value)
 	AddMovementInput(UKismetMathLibrary::GetRightVector(FRotator(0.0f, GetControlRotation().Yaw, 0.0f)), Value);
 }
 
+void ARPGCharacter::Shoot()
+{
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerShoot();
+		return;
+	}
+	
+	if (UWorld* const World = GetWorld())
+	{
+		if (AController* MyInstigator = GetInstigatorController()) {
+			const FRotator SpawnRotation = MyInstigator->GetControlRotation();
+			
+			const FVector SpawnLocation = GetMesh()->GetSocketLocation(ProjectileAttachmentSocketName) + SpawnRotation.Vector();
+
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+
+			FTransform SpawnTransform(SpawnRotation, SpawnLocation);
+			World->SpawnActor<ARPGProjectile>(ProjectileClass, SpawnTransform, ActorSpawnParams);
+
+		}
+	}
+		
+}
+
+void ARPGCharacter::ServerShoot_Implementation()
+{
+	Shoot();
+}
+
+bool ARPGCharacter::ServerShoot_Validate()
+{
+	//TODO: get this done
+	return true;
+}
+
 // Called every frame
 void ARPGCharacter::Tick(float DeltaTime)
 {
@@ -65,6 +108,10 @@ void ARPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &ARPGCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ARPGCharacter::MoveRight);
+
+	// Bind Shooting event
+
+	PlayerInputComponent->BindAction("Shoot", IE_Released, this, &ARPGCharacter::Shoot);
 
 }
 

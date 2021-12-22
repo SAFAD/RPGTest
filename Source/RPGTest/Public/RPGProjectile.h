@@ -82,10 +82,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 		UDataTable* ProjectileDataTable;
+
+	//TODO: use FDataTableRowHandle instead
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
 		FName ProjectileRowName;
 
 	FProjectileData* ProjectileData;
+	FProjectileEffectsData ProjectileEffectsData;
 
 protected:
 	// Called when the game starts or when spawned

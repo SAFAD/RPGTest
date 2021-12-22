@@ -27,16 +27,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 		FName ProjectileAttachmentSocketName = "ProjectileSocket";
 
+	/** projectile class */
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+		TSubclassOf<class ARPGProjectile> ProjectileClass;
+
 protected:
 
-	
-	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void MoveForward(float Value);
 
 	void MoveRight(float Value);
+
+	void Shoot();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerShoot();
 
 public:	
 	// Called every frame
