@@ -60,6 +60,10 @@ struct FProjectileData : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere)
 	int AoeCap;
+
+	UPROPERTY(EditAnywhere)
+	float Cooldown;
+
 	UPROPERTY(EditAnywhere)
 	FProjectileEffectsData Effects;
 

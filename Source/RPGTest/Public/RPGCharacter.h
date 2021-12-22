@@ -8,6 +8,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class ARPGProjectile;
 
 UCLASS()
 class RPGTEST_API ARPGCharacter : public ACharacter
@@ -31,6 +32,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 		TSubclassOf<class ARPGProjectile> ProjectileClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = Projetile)
+	TArray<TSubclassOf<ARPGProjectile>> Projectiles;
+
+	UPROPERTY(Transient, Replicated)
+	TArray<TSubclassOf<ARPGProjectile>> Inventory;
+	
+	UPROPERTY(Transient, ReplicatedUsing = OnRep_CurrentProjectile)
+	TSubclassOf<ARPGProjectile> CurrentProjectile;
+
 protected:
 
 	// Called when the game starts or when spawned
@@ -44,6 +54,46 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerShoot();
+
+	
+	/** [server] spawns default inventory */
+	void SpawnDefaultInventory();
+
+	/**
+	* [server] adds a projectile to inventory
+	* @param ProjectileClass	Projectile to add
+	*/
+	void AddProjectile(TSubclassOf<ARPGProjectile> Projectile);
+
+	/**
+	* [server] removes projectile to inventory
+	* @param ProjectileClass Projectile to remove
+	*/
+	void RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile);
+	
+	/**
+	* [server + local] equips projectile from inventory
+	*
+	* @param Projectile	Projectile to equip
+	*/
+	void EquipProjectile(TSubclassOf<ARPGProjectile> Projectile);
+
+	void EquipNextProjectile();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnUnequipProjectile();
+
+	/** equip projectile */
+	UFUNCTION(Reliable, Server, WithValidation)
+	void ServerEquipProjectile(TSubclassOf<ARPGProjectile> NewProjectile);
+
+	/** updates current projectile */
+	void SetCurrentProjectile(TSubclassOf<ARPGProjectile> NewProjectile, TSubclassOf<ARPGProjectile> LastProjectile = NULL);
+	/** current projectile rep handler */
+	UFUNCTION()
+	void OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProjectile);
+
+
 
 public:	
 	// Called every frame

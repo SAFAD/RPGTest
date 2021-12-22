@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 #include "RPGProjectile.h"
 
 
@@ -35,10 +36,25 @@ ARPGCharacter::ARPGCharacter()
 
 }
 
+
+void ARPGCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// only to local owner: projectile change requests are locally instigated, other clients don't need it
+	DOREPLIFETIME_CONDITION(ARPGCharacter, Inventory, COND_OwnerOnly);
+
+	//everyone
+	DOREPLIFETIME(ARPGCharacter, CurrentProjectile);
+	
+}
+
 // Called when the game starts or when spawned
 void ARPGCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SpawnDefaultInventory();
 	
 }
 
@@ -94,6 +110,103 @@ bool ARPGCharacter::ServerShoot_Validate()
 	return true;
 }
 
+void ARPGCharacter::SpawnDefaultInventory()
+{
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		return;
+	}
+
+	int32 NumProjectileClasses = Projectiles.Num();
+	for (int32 i = 0; i < NumProjectileClasses; i++)
+	{
+		if (TSubclassOf<ARPGProjectile> NewProjectile = Projectiles[i])
+		{
+			AddProjectile(NewProjectile);
+		}
+	}
+
+	// equip first projectile in inventory
+	if (Inventory.Num() > 0)
+	{
+		EquipProjectile(Inventory[0]);
+	}
+}
+
+void ARPGCharacter::AddProjectile(TSubclassOf<ARPGProjectile> Projectile)
+{
+	if (Projectile && GetLocalRole() == ROLE_Authority)
+	{
+		Inventory.AddUnique(Projectile);
+	}
+}
+
+void ARPGCharacter::RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile)
+{
+	if (Projectile && GetLocalRole() == ROLE_Authority)
+	{
+		Inventory.RemoveSingle(Projectile);
+	}
+}
+
+void ARPGCharacter::EquipProjectile(TSubclassOf<ARPGProjectile> Projectile)
+{
+	if (Projectile)
+	{
+		if (GetLocalRole() == ROLE_Authority)
+		{
+			SetCurrentProjectile(Projectile, CurrentProjectile);
+		}
+		else
+		{
+			ServerEquipProjectile(Projectile);
+		}
+	}
+}
+
+void ARPGCharacter::EquipNextProjectile()
+{
+	
+}
+
+void ARPGCharacter::ServerEquipProjectile_Implementation(TSubclassOf<ARPGProjectile> NewProjectile)
+{
+	EquipProjectile(NewProjectile);
+}
+
+bool ARPGCharacter::ServerEquipProjectile_Validate(TSubclassOf<ARPGProjectile> NewProjectile)
+{
+	//TODO: implement this
+	return true;
+}
+
+void ARPGCharacter::SetCurrentProjectile(TSubclassOf<ARPGProjectile> NewProjectile, TSubclassOf<ARPGProjectile> LastProjectile /*= NULL*/)
+{
+	TSubclassOf<ARPGProjectile> LocalLastProjectile = nullptr;
+
+	if (LastProjectile != NULL)
+	{
+		LocalLastProjectile = LastProjectile;
+	}
+	else if (NewProjectile != CurrentProjectile)
+	{
+		LocalLastProjectile = CurrentProjectile;
+	}
+
+	// unequip previous
+	/*if (LocalLastProjectile)
+	{
+		LocalLastProjectile->OnUnequipProjectile();
+	}*/
+
+	CurrentProjectile = NewProjectile;
+}
+
+void ARPGCharacter::OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProjectile)
+{
+	SetCurrentProjectile(CurrentProjectile, LastProjectile);
+}
+
 // Called every frame
 void ARPGCharacter::Tick(float DeltaTime)
 {
@@ -116,6 +229,9 @@ void ARPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	// Bind Shooting event
 
 	PlayerInputComponent->BindAction("Shoot", IE_Released, this, &ARPGCharacter::Shoot);
+
+	// Bind switching projectiles event
+	PlayerInputComponent->BindAction("NextProjectile", IE_Released, this, &ARPGCharacter::EquipNextProjectile);
 
 }
 
