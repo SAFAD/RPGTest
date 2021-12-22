@@ -66,6 +66,16 @@ void ARPGProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	
+
+	if (ProjectileDataTable && ProjectileRowName != "")
+	{
+		ProjectileData = ProjectileDataTable->FindRow<FProjectileData>(ProjectileRowName, ProjectileRowName.ToString());
+		MovementComp->InitialSpeed = ProjectileData->InitialSpeed;
+		MovementComp->MaxSpeed = ProjectileData->MaxSpeed;
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Either the Datatable or the Row name is undefined"));
+	}
 }
 
 // Called every frame

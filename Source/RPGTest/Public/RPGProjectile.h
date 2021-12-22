@@ -19,9 +19,6 @@ struct FProjectileEffectsData : public FTableRowBase {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-		FString Name;
-
-	UPROPERTY(EditAnywhere)
 		class UParticleSystem* BaseEffect;
 
 	UPROPERTY(EditAnywhere)
@@ -42,6 +39,15 @@ struct FProjectileData : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere)
 	float BaseDamage;
+
+	UPROPERTY(EditAnywhere)
+	float InitialSpeed;
+
+	UPROPERTY(EditAnywhere)
+	float MaxSpeed;
+
+	UPROPERTY(EditAnywhere)
+	float Gravity;
 
 	UPROPERTY(EditAnywhere)
 	FProjectileEffectsData Effects;
@@ -77,7 +83,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 		UDataTable* ProjectileDataTable;
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-		FString ProjectileRowName;
+		FName ProjectileRowName;
+
+	FProjectileData* ProjectileData;
 
 protected:
 	// Called when the game starts or when spawned
