@@ -56,6 +56,11 @@ struct FProjectileData : public FTableRowBase {
 	bool bDestroyOnImpact;
 
 	UPROPERTY(EditAnywhere)
+	bool bIsAoe;
+
+	UPROPERTY(EditAnywhere)
+	int AoeCap;
+	UPROPERTY(EditAnywhere)
 	FProjectileEffectsData Effects;
 
 };
@@ -103,6 +108,18 @@ protected:
 	/** called when projectile hits something */
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void ApplyAoeImpact();
+	
+	UFUNCTION()
+	void ApplyImpact(UPrimitiveComponent* OtherComp);
+
+	UFUNCTION()
+	void DestroyActor(AActor* Actor);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerDestroyActor(AActor* Actor);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastPlayImpactEffect();

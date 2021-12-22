@@ -42,7 +42,7 @@ ARPGProjectile::ARPGProjectile()
 	MovementComp->bShouldBounce = false;
 
 	AOECollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("AOESphereComp"));
-	AOECollisionComp->InitSphereRadius(20.0f);
+	AOECollisionComp->InitSphereRadius(300.0f);
 	AOECollisionComp->AlwaysLoadOnClient = true;
 	AOECollisionComp->AlwaysLoadOnServer = true;
 	AOECollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -50,7 +50,7 @@ ARPGProjectile::ARPGProjectile()
 	AOECollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
 	AOECollisionComp->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Ignore);
 	AOECollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-
+	AOECollisionComp->SetupAttachment(RootComponent);
 	// Die after 10 seconds by default, don't want this to last forever as it will eventually crash the server
 	InitialLifeSpan = 10.0f;
 
@@ -88,24 +88,73 @@ void ARPGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 
 	if (OtherActor != nullptr && OtherActor != this && OtherActor != GetInstigator())
 	{
-		
-
-		switch (OtherComp->GetCollisionObjectType()) {
-			case ECC_Pawn:
-				UGameplayStatics::ApplyDamage(OtherActor, ProjectileData->BaseDamage, GetInstigatorController(), GetInstigator(), ProjectileData->DamageTypeClass);
-			case ECC_Destructible:
-				OtherActor->Destroy();
-			case ECC_WorldStatic:
-				UE_LOG(LogTemp, Warning, TEXT("IS STATIC DO NOTHING"));
-			/*default:
-				UE_LOG(LogTemp, Warning, TEXT("Collision Type: %s"), OtherComp->GetCollisionObjectType());*/
+		if (ProjectileData->bIsAoe) {
+			ApplyAoeImpact();
 		}
-		MultiCastPlayImpactEffect();
-		if (ProjectileData->bDestroyOnImpact)
-		{
-			Destroy();
+		else {
+			ApplyImpact(OtherComp);
 		}
 	}
+}
+
+void ARPGProjectile::ApplyAoeImpact()
+{
+	TArray<UPrimitiveComponent*> OverlappedComponents;
+	int i = 0;
+
+	AOECollisionComp->GetOverlappingComponents(OverlappedComponents);
+
+	for (UPrimitiveComponent* OverlappedComponent : OverlappedComponents)
+	{
+		if (i > ProjectileData->AoeCap)
+		{
+			break;
+		}
+		ApplyImpact(OverlappedComponent);
+		i++;
+	}
+}
+
+void ARPGProjectile::ApplyImpact(UPrimitiveComponent* OtherComp)
+{
+	AActor* OtherActor = OtherComp->GetOwner();
+	switch (OtherComp->GetCollisionObjectType()) {
+	case ECC_Pawn:
+		UGameplayStatics::ApplyDamage(OtherActor, ProjectileData->BaseDamage, GetInstigatorController(), GetInstigator(), ProjectileData->DamageTypeClass);
+	case ECC_Destructible:
+		OtherActor->Destroy();
+	case ECC_WorldStatic:
+		UE_LOG(LogTemp, Warning, TEXT("IS STATIC DO NOTHING"));
+	}
+
+	MultiCastPlayImpactEffect();
+	
+	if (ProjectileData->bDestroyOnImpact)
+	{
+		Destroy();
+	}
+}
+
+void ARPGProjectile::DestroyActor(AActor* Actor)
+{
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerDestroyActor(Actor);
+		return;
+	}
+
+	Actor->Destroy();
+}
+
+void ARPGProjectile::ServerDestroyActor_Implementation(AActor* Actor)
+{
+	DestroyActor(Actor);
+}
+
+bool ARPGProjectile::ServerDestroyActor_Validate(AActor* Actor)
+{
+	//TODO: Implement this
+	return true;
 }
 
 void ARPGProjectile::MultiCastPlayImpactEffect_Implementation()
