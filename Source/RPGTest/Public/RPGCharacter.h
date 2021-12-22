@@ -18,8 +18,6 @@ public:
 	// Sets default values for this character's properties
 	ARPGCharacter();
 
-protected:
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 		UCameraComponent* CameraComp;
 
@@ -28,6 +26,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 		FName ProjectileAttachmentSocketName = "ProjectileSocket";
+
+protected:
+
+	
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
