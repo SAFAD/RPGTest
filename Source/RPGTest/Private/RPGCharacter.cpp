@@ -91,7 +91,7 @@ void ARPGCharacter::Shoot()
 
 
 			FTransform SpawnTransform(SpawnRotation, SpawnLocation);
-			World->SpawnActor<ARPGProjectile>(ProjectileClass, SpawnTransform, ActorSpawnParams);
+			World->SpawnActor<ARPGProjectile>(CurrentProjectile, SpawnTransform, ActorSpawnParams);
 			
 
 		}
@@ -166,7 +166,27 @@ void ARPGCharacter::EquipProjectile(TSubclassOf<ARPGProjectile> Projectile)
 
 void ARPGCharacter::EquipNextProjectile()
 {
+	if (Inventory.Num() > 0)
+	{
+
+		const int32 CurrentProjectileIdx = Inventory.IndexOfByKey(CurrentProjectile);
 	
+		TSubclassOf<ARPGProjectile> NextProjectile = Inventory[(CurrentProjectileIdx + 1) % Inventory.Num()];
+		//if we're equipping last projectile, go to first
+		if (CurrentProjectileIdx == Inventory.Num() - 1)
+		{
+			NextProjectile = Inventory[0];
+			EquipProjectile(NextProjectile);
+			return;
+		}
+		//else proceed with usual
+		EquipProjectile(NextProjectile);
+
+		UE_LOG(LogTemp, Warning, TEXT("New Projectile: %s"), *NextProjectile->GetName());
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Empty Inventory!"));
+	}
 }
 
 void ARPGCharacter::ServerEquipProjectile_Implementation(TSubclassOf<ARPGProjectile> NewProjectile)
