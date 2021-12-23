@@ -15,9 +15,6 @@ ARPGCharacter::ARPGCharacter()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//this->bUseControllerRotationYaw = false;
-
-
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->SetupAttachment(RootComponent);
 
@@ -84,6 +81,11 @@ void ARPGCharacter::Shoot()
 		return;
 	}
 
+	if (!CurrentProjectile)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Current Projectile isn't set properly, due to the projectile not having a datatable set"));
+		return;
+	}
 	if (UWorld* const World = GetWorld())
 	{
 		if (AController* MyInstigator = GetInstigatorController()) {
@@ -115,6 +117,8 @@ void ARPGCharacter::Shoot()
 
 			LastFired[CurrentProjectile] = World->TimeSeconds;
 
+			OnShootProjectile.Broadcast(SpawnedProjectile);
+
 		}
 	}
 
@@ -142,14 +146,12 @@ void ARPGCharacter::ServerHandleCooldown_Implementation(TSubclassOf<ARPGProjecti
 	}
 	float ProjectileLastFired = LastFired[Projectile];
 	float ProjectileCooldown = Cooldowns[Projectile];
-	/*ARPGProjectile* ProjectileDefaultObject = Projectile.GetDefaultObject();
-	FProjectileData* ProjectileData = ProjectileDefaultObject->ProjectileData;
-	float ProjectileCooldown = ProjectileData->Cooldown;*/
 
 
 	if (GetWorld()->TimeSeconds > ProjectileLastFired + ProjectileCooldown)
 	{
 		bCanShoot = true;
+		OnProjectileCooldownEnd.Broadcast(Projectile);
 		return;
 	}
 
@@ -261,12 +263,14 @@ void ARPGCharacter::SetCurrentProjectile(TSubclassOf<ARPGProjectile> NewProjecti
 	}
 
 	// unequip previous
-	/*if (LocalLastProjectile)
+	if (LocalLastProjectile)
 	{
-		LocalLastProjectile->OnUnequipProjectile();
-	}*/
+		OnUnEquipProjectile.Broadcast(LocalLastProjectile);
+	}
 
 	CurrentProjectile = NewProjectile;
+
+	OnEquipProjectile.Broadcast(CurrentProjectile);
 }
 
 void ARPGCharacter::OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProjectile)

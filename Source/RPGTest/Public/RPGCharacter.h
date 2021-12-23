@@ -10,6 +10,17 @@ class UCameraComponent;
 class USpringArmComponent;
 class ARPGProjectile;
 
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterEquipProjectile, TSubclassOf<ARPGProjectile>, Projectile /* new */);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterUnEquipProjectile,  TSubclassOf<ARPGProjectile>, Projectile /* old */);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterShootProjectile, ARPGProjectile*, Projectile);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterOnProjectileCooldownEnd, TSubclassOf<ARPGProjectile>, Projectile);
+
+
 UCLASS()
 class RPGTEST_API ARPGCharacter : public ACharacter
 {
@@ -18,6 +29,7 @@ class RPGTEST_API ARPGCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ARPGCharacter();
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 		UCameraComponent* CameraComp;
@@ -88,9 +100,7 @@ protected:
 	void EquipProjectile(TSubclassOf<ARPGProjectile> Projectile);
 
 	void EquipNextProjectile();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnUnequipProjectile();
+	
 
 	/** equip projectile */
 	UFUNCTION(Reliable, Server, WithValidation)
@@ -102,7 +112,17 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProjectile);
 
+	UPROPERTY(BlueprintAssignable, Category = Projectile)
+		FOnRPGCharacterEquipProjectile OnEquipProjectile;
 
+	UPROPERTY(BlueprintAssignable, Category = Projectile)
+		FOnRPGCharacterUnEquipProjectile OnUnEquipProjectile;
+
+	UPROPERTY(BlueprintAssignable, Category = Projectile)
+		FOnRPGCharacterShootProjectile OnShootProjectile;
+
+	UPROPERTY(BlueprintAssignable, Category = Projectile)
+		FOnRPGCharacterOnProjectileCooldownEnd OnProjectileCooldownEnd;
 
 public:	
 	// Called every frame
