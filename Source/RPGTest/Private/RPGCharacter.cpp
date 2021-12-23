@@ -89,17 +89,18 @@ void ARPGCharacter::Shoot()
 		if (AController* MyInstigator = GetInstigatorController()) {
 
 
-			const FRotator SpawnRotation = MyInstigator->GetControlRotation();
+			const FRotator SpawnRotation = GetControlRotation();
+			
 
-			const FVector SpawnLocation = GetMesh()->GetSocketLocation(ProjectileAttachmentSocketName) + SpawnRotation.Vector();
+			const FVector SpawnLocation = GetMesh()->GetSocketLocation(ProjectileAttachmentSocketName);// + SpawnRotation.Vector();
 
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.Instigator = this;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 
-			FTransform SpawnTransform(SpawnRotation, SpawnLocation);
+			FTransform SpawnTransform(GetActorForwardVector().Rotation(), SpawnLocation);
 			ARPGProjectile* SpawnedProjectile = World->SpawnActor<ARPGProjectile>(CurrentProjectile, SpawnTransform, ActorSpawnParams);
 
 			//it must have LastFired Time
