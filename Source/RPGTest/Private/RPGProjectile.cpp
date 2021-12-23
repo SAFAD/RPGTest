@@ -68,9 +68,9 @@ void ARPGProjectile::BeginPlay()
 	Super::BeginPlay();
 	
 
-	if (ProjectileDataTable && ProjectileRowName != "")
+	if (!ProjectileDataRow.IsNull())
 	{
-		ProjectileData = ProjectileDataTable->FindRow<FProjectileData>(ProjectileRowName, ProjectileRowName.ToString());
+		ProjectileData = ProjectileDataRow.DataTable->FindRow<FProjectileData>(ProjectileDataRow.RowName, ProjectileDataRow.RowName.ToString());
 		MovementComp->InitialSpeed = ProjectileData->InitialSpeed;
 		MovementComp->MaxSpeed = ProjectileData->MaxSpeed;
 		MovementComp->ProjectileGravityScale = ProjectileData->Gravity;

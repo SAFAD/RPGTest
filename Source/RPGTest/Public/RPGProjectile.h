@@ -95,12 +95,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		UProjectileMovementComponent* MovementComp;
 
+	
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
-		UDataTable* ProjectileDataTable;
-
-	//TODO: use FDataTableRowHandle instead
-	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-		FName ProjectileRowName;
+	FDataTableRowHandle ProjectileDataRow;
 
 	
 
