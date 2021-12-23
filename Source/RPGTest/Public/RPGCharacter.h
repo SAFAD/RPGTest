@@ -4,17 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "RPGProjectile.h"
 #include "RPGCharacter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
-class ARPGProjectile;
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterEquipProjectile, FProjectileData, Projectile /* new */);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterEquipProjectile, TSubclassOf<ARPGProjectile>, Projectile /* new */);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterUnEquipProjectile,  TSubclassOf<ARPGProjectile>, Projectile /* old */);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterUnEquipProjectile,  FProjectileData, Projectile /* old */);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterShootProjectile, ARPGProjectile*, Projectile);
 
@@ -123,6 +122,8 @@ protected:
 
 	UPROPERTY(BlueprintAssignable, Category = Projectile)
 		FOnRPGCharacterOnProjectileCooldownEnd OnProjectileCooldownEnd;
+
+	FProjectileData LoadProjectileDataFromClass(TSubclassOf<ARPGProjectile> Projectile);
 
 public:	
 	// Called every frame

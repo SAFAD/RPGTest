@@ -151,6 +151,7 @@ void ARPGCharacter::ServerHandleCooldown_Implementation(TSubclassOf<ARPGProjecti
 	if (GetWorld()->TimeSeconds > ProjectileLastFired + ProjectileCooldown)
 	{
 		bCanShoot = true;
+		
 		OnProjectileCooldownEnd.Broadcast(Projectile);
 		return;
 	}
@@ -265,17 +266,37 @@ void ARPGCharacter::SetCurrentProjectile(TSubclassOf<ARPGProjectile> NewProjecti
 	// unequip previous
 	if (LocalLastProjectile)
 	{
-		OnUnEquipProjectile.Broadcast(LocalLastProjectile);
+		OnUnEquipProjectile.Broadcast(LoadProjectileDataFromClass(LocalLastProjectile));
 	}
 
 	CurrentProjectile = NewProjectile;
 
-	OnEquipProjectile.Broadcast(CurrentProjectile);
+	OnEquipProjectile.Broadcast(LoadProjectileDataFromClass(CurrentProjectile));
 }
 
 void ARPGCharacter::OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProjectile)
 {
 	SetCurrentProjectile(CurrentProjectile, LastProjectile);
+}
+
+
+
+FProjectileData ARPGCharacter::LoadProjectileDataFromClass(TSubclassOf<ARPGProjectile> Projectile)
+{
+	TSubclassOf<ARPGProjectile> item_class = ARPGProjectile::StaticClass();
+	ARPGProjectile* item = NewObject<ARPGProjectile>(this, item_class);
+	FDataTableRowHandle ProjectileDataRow = item->ProjectileDataRow;
+	
+	if (!ProjectileDataRow.IsNull())
+	{
+		FProjectileData* ProjectileDataPointer = ProjectileDataRow.DataTable->FindRow<FProjectileData>(ProjectileDataRow.RowName, ProjectileDataRow.RowName.ToString());
+		FProjectileData ProjectileData = *ProjectileDataPointer;
+		return ProjectileData;
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Either the Datatable or the Row name is undefined"));
+		return *new FProjectileData;;
+	}
 }
 
 // Called every frame

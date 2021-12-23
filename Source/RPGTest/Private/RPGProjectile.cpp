@@ -68,6 +68,11 @@ void ARPGProjectile::BeginPlay()
 	Super::BeginPlay();
 	
 
+	
+}
+
+void ARPGProjectile::PostInitializeComponents()
+{
 	if (!ProjectileDataRow.IsNull())
 	{
 		ProjectileData = ProjectileDataRow.DataTable->FindRow<FProjectileData>(ProjectileDataRow.RowName, ProjectileDataRow.RowName.ToString());

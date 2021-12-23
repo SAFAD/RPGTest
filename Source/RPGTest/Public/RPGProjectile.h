@@ -96,14 +96,14 @@ public:
 		UProjectileMovementComponent* MovementComp;
 
 	
-	UPROPERTY(EditDefaultsOnly, Category = Projectile)
-	FDataTableRowHandle ProjectileDataRow;
 
 	
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void PostInitializeComponents() override;
 
 	/** called when projectile hits something */
 	UFUNCTION()
@@ -127,6 +127,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+		FDataTableRowHandle ProjectileDataRow;
 
 	FProjectileData* ProjectileData;
 	FProjectileEffectsData ProjectileEffectsData;
