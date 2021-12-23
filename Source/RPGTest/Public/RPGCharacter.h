@@ -42,7 +42,12 @@ public:
 	TSubclassOf<ARPGProjectile> CurrentProjectile;
 
 protected:
+	//Used for tracking last time projectiles have been used
+	TMap<TSubclassOf<ARPGProjectile>, float> LastFired;
+	//Used to track any number of projectiles' cooldowns
+	TMap<TSubclassOf<ARPGProjectile>, float> Cooldowns;
 
+	bool bCanShoot = true;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -55,7 +60,11 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerShoot();
 
-	
+
+	UFUNCTION(Server, Reliable)
+	void ServerHandleCooldown(TSubclassOf<ARPGProjectile> Projectile);
+
+
 	/** [server] spawns default inventory */
 	void SpawnDefaultInventory();
 

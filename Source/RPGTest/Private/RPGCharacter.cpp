@@ -12,16 +12,16 @@
 // Sets default values
 ARPGCharacter::ARPGCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	//this->bUseControllerRotationYaw = false;
-	
+
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->SetupAttachment(RootComponent);
 
-	
+
 	SpringArmComp->bUsePawnControlRotation = false;
 	SpringArmComp->bDoCollisionTest = false;
 	SpringArmComp->bInheritPitch = false;
@@ -46,7 +46,7 @@ void ARPGCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutL
 
 	//everyone
 	DOREPLIFETIME(ARPGCharacter, CurrentProjectile);
-	
+
 }
 
 // Called when the game starts or when spawned
@@ -55,7 +55,7 @@ void ARPGCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	SpawnDefaultInventory();
-	
+
 }
 
 void ARPGCharacter::MoveForward(float Value)
@@ -75,28 +75,48 @@ void ARPGCharacter::Shoot()
 		ServerShoot();
 		return;
 	}
-	
+
+	ServerHandleCooldown(CurrentProjectile);
+
+	if (!bCanShoot)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Cooldown!"));
+		return;
+	}
+
 	if (UWorld* const World = GetWorld())
 	{
 		if (AController* MyInstigator = GetInstigatorController()) {
+
+
 			const FRotator SpawnRotation = MyInstigator->GetControlRotation();
-			
+
 			const FVector SpawnLocation = GetMesh()->GetSocketLocation(ProjectileAttachmentSocketName) + SpawnRotation.Vector();
 
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.Instigator = this;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			
 
 
 			FTransform SpawnTransform(SpawnRotation, SpawnLocation);
-			World->SpawnActor<ARPGProjectile>(CurrentProjectile, SpawnTransform, ActorSpawnParams);
-			
+			ARPGProjectile* SpawnedProjectile = World->SpawnActor<ARPGProjectile>(CurrentProjectile, SpawnTransform, ActorSpawnParams);
+
+			//it must have LastFired Time
+			if (!LastFired.Contains(CurrentProjectile))
+			{
+				LastFired.Add(CurrentProjectile, World->TimeSeconds);
+			}
+			if (!Cooldowns.Contains(CurrentProjectile))
+			{
+				Cooldowns.Add(CurrentProjectile, SpawnedProjectile->ProjectileData->Cooldown);
+			}
+
+			LastFired[CurrentProjectile] = World->TimeSeconds;
 
 		}
 	}
-		
+
 }
 
 void ARPGCharacter::ServerShoot_Implementation()
@@ -108,6 +128,32 @@ bool ARPGCharacter::ServerShoot_Validate()
 {
 	//TODO: get this done
 	return true;
+}
+
+
+void ARPGCharacter::ServerHandleCooldown_Implementation(TSubclassOf<ARPGProjectile> Projectile)
+{
+	// if neither LastFired OR Cooldown is set, just return true and it will be set after projectile is shot
+	if (!LastFired.Contains(Projectile) || !Cooldowns.Contains(Projectile))
+	{
+		bCanShoot = true;
+		return;
+	}
+	float ProjectileLastFired = LastFired[Projectile];
+	float ProjectileCooldown = Cooldowns[Projectile];
+	/*ARPGProjectile* ProjectileDefaultObject = Projectile.GetDefaultObject();
+	FProjectileData* ProjectileData = ProjectileDefaultObject->ProjectileData;
+	float ProjectileCooldown = ProjectileData->Cooldown;*/
+
+
+	if (GetWorld()->TimeSeconds > ProjectileLastFired + ProjectileCooldown)
+	{
+		bCanShoot = true;
+		return;
+	}
+
+
+	bCanShoot = false;
 }
 
 void ARPGCharacter::SpawnDefaultInventory()
@@ -170,7 +216,7 @@ void ARPGCharacter::EquipNextProjectile()
 	{
 
 		const int32 CurrentProjectileIdx = Inventory.IndexOfByKey(CurrentProjectile);
-	
+
 		TSubclassOf<ARPGProjectile> NextProjectile = Inventory[(CurrentProjectileIdx + 1) % Inventory.Num()];
 		//if we're equipping last projectile, go to first
 		if (CurrentProjectileIdx == Inventory.Num() - 1)

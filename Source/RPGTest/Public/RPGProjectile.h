@@ -102,8 +102,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
 		FName ProjectileRowName;
 
-	FProjectileData* ProjectileData;
-	FProjectileEffectsData ProjectileEffectsData;
+	
 
 protected:
 	// Called when the game starts or when spawned
@@ -132,4 +131,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	FProjectileData* ProjectileData;
+	FProjectileEffectsData ProjectileEffectsData;
 };
