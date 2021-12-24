@@ -67,12 +67,6 @@ void ARPGProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
-	
-}
-
-void ARPGProjectile::PostInitializeComponents()
-{
 	if (!ProjectileDataRow.IsNull())
 	{
 		ProjectileData = ProjectileDataRow.DataTable->FindRow<FProjectileData>(ProjectileDataRow.RowName, ProjectileDataRow.RowName.ToString());
@@ -87,8 +81,8 @@ void ARPGProjectile::PostInitializeComponents()
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Either the Datatable or the Row name is undefined"));
 	}
+	
 }
-
 void ARPGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 

@@ -116,7 +116,7 @@ void ARPGCharacter::Shoot()
 			}
 
 			LastFired[CurrentProjectile] = World->TimeSeconds;
-
+			
 			OnShootProjectile.Broadcast(SpawnedProjectile);
 
 		}
@@ -283,8 +283,8 @@ void ARPGCharacter::OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProj
 
 FProjectileData ARPGCharacter::LoadProjectileDataFromClass(TSubclassOf<ARPGProjectile> Projectile)
 {
-	TSubclassOf<ARPGProjectile> item_class = ARPGProjectile::StaticClass();
-	ARPGProjectile* item = NewObject<ARPGProjectile>(this, item_class);
+	
+	ARPGProjectile* item = NewObject<ARPGProjectile>(this, Projectile);
 	FDataTableRowHandle ProjectileDataRow = item->ProjectileDataRow;
 	
 	if (!ProjectileDataRow.IsNull())
