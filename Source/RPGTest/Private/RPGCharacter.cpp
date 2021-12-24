@@ -117,7 +117,7 @@ void ARPGCharacter::Shoot()
 
 			LastFired[CurrentProjectile] = World->TimeSeconds;
 			
-			OnShootProjectile.Broadcast(SpawnedProjectile);
+			OnShootProjectile.Broadcast(SpawnedProjectile, *SpawnedProjectile->ProjectileData);
 
 		}
 	}
@@ -185,30 +185,31 @@ void ARPGCharacter::SpawnDefaultInventory()
 
 void ARPGCharacter::AddProjectile(TSubclassOf<ARPGProjectile> Projectile)
 {
-	bool bHasBeenAdded = false;
 	if (Projectile && GetLocalRole() == ROLE_Authority)
 	{
 		Inventory.AddUnique(Projectile);
-		bHasBeenAdded = true;
+		
 	}
-	if (bHasBeenAdded)
-	{
-		OnProjectileAdded.Broadcast(LoadProjectileDataFromClass(Projectile));
-	}
+	BroadcastProjectileAdded(Projectile);
+}
+
+void ARPGCharacter::BroadcastProjectileAdded_Implementation(TSubclassOf<ARPGProjectile> Projectile)
+{
+	OnProjectileAdded.Broadcast(LoadProjectileDataFromClass(Projectile));
 }
 
 void ARPGCharacter::RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile)
 {
-	bool bHasBeenRemoved = false;
 	if (Projectile && GetLocalRole() == ROLE_Authority)
 	{
 		Inventory.RemoveSingle(Projectile);
-		bHasBeenRemoved = true;
+		BroadcastProjectileRemoved(Projectile);
 	}
-	if (bHasBeenRemoved)
-	{
-		OnProjectileRemoved.Broadcast(LoadProjectileDataFromClass(Projectile));
-	}
+}
+
+void ARPGCharacter::BroadcastProjectileRemoved_Implementation(TSubclassOf<ARPGProjectile> Projectile)
+{
+	OnProjectileRemoved.Broadcast(LoadProjectileDataFromClass(Projectile));
 }
 
 void ARPGCharacter::EquipProjectile(TSubclassOf<ARPGProjectile> Projectile)

@@ -15,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterEquipProjectile, FPro
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterUnEquipProjectile,  FProjectileData, Projectile /* old */);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterShootProjectile, ARPGProjectile*, Projectile);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnRPGCharacterShootProjectile, ARPGProjectile*, Projectile, FProjectileData, ProjectileData);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterOnProjectileCooldownEnd, TSubclassOf<ARPGProjectile>, Projectile);
 
@@ -90,11 +90,25 @@ protected:
 	void AddProjectile(TSubclassOf<ARPGProjectile> Projectile);
 
 	/**
+	* [client] used exclusively to broadcast Projectile Addition to Inventory
+	* @param ProjectileClass Projectile to add
+	*/
+	UFUNCTION(NetMulticast, Reliable)
+	void BroadcastProjectileAdded(TSubclassOf<ARPGProjectile> Projectile);
+
+	/**
 	* [server] removes projectile to inventory
 	* @param ProjectileClass Projectile to remove
 	*/
 	void RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile);
 	
+	/**
+	* [client] used exclusively to broadcast Projectile Remove to Inventory
+	* @param ProjectileClass Projectile to add
+	*/
+	UFUNCTION(NetMulticast, Reliable)
+	void BroadcastProjectileRemoved(TSubclassOf<ARPGProjectile> Projectile);
+
 	/**
 	* [server + local] equips projectile from inventory
 	*
