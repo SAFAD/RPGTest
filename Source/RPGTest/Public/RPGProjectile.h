@@ -35,7 +35,7 @@ struct FProjectileData : public FTableRowBase {
 	FString Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UTexture* Icon;
+	class UTexture2D* Icon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BaseDamage;

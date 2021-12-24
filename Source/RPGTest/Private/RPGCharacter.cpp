@@ -188,6 +188,7 @@ void ARPGCharacter::AddProjectile(TSubclassOf<ARPGProjectile> Projectile)
 	if (Projectile && GetLocalRole() == ROLE_Authority)
 	{
 		Inventory.AddUnique(Projectile);
+		OnProjectileAdded.Broadcast(LoadProjectileDataFromClass(Projectile));
 	}
 }
 
@@ -196,6 +197,7 @@ void ARPGCharacter::RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile)
 	if (Projectile && GetLocalRole() == ROLE_Authority)
 	{
 		Inventory.RemoveSingle(Projectile);
+		OnProjectileRemoved.Broadcast(LoadProjectileDataFromClass(Projectile));
 	}
 }
 

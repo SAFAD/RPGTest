@@ -19,6 +19,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterShootProjectile, ARPG
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterOnProjectileCooldownEnd, TSubclassOf<ARPGProjectile>, Projectile);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterProjectileAdded, FProjectileData, Projectile);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRPGCharacterProjectileRemoved, FProjectileData, Projectile);
+
 
 UCLASS()
 class RPGTEST_API ARPGCharacter : public ACharacter
@@ -122,6 +126,12 @@ protected:
 
 	UPROPERTY(BlueprintAssignable, Category = Projectile)
 		FOnRPGCharacterOnProjectileCooldownEnd OnProjectileCooldownEnd;
+
+	UPROPERTY(BlueprintAssignable, Category = Projectile)
+		FOnRPGCharacterProjectileAdded OnProjectileAdded;
+
+	UPROPERTY(BlueprintAssignable, Category = Projectile)
+		FOnRPGCharacterProjectileRemoved OnProjectileRemoved;
 
 	FProjectileData LoadProjectileDataFromClass(TSubclassOf<ARPGProjectile> Projectile);
 
