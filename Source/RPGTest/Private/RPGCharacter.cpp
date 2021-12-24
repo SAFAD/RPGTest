@@ -185,18 +185,28 @@ void ARPGCharacter::SpawnDefaultInventory()
 
 void ARPGCharacter::AddProjectile(TSubclassOf<ARPGProjectile> Projectile)
 {
+	bool bHasBeenAdded = false;
 	if (Projectile && GetLocalRole() == ROLE_Authority)
 	{
 		Inventory.AddUnique(Projectile);
+		bHasBeenAdded = true;
+	}
+	if (bHasBeenAdded)
+	{
 		OnProjectileAdded.Broadcast(LoadProjectileDataFromClass(Projectile));
 	}
 }
 
 void ARPGCharacter::RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile)
 {
+	bool bHasBeenRemoved = false;
 	if (Projectile && GetLocalRole() == ROLE_Authority)
 	{
 		Inventory.RemoveSingle(Projectile);
+		bHasBeenRemoved = true;
+	}
+	if (bHasBeenRemoved)
+	{
 		OnProjectileRemoved.Broadcast(LoadProjectileDataFromClass(Projectile));
 	}
 }
