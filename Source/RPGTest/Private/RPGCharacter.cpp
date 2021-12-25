@@ -77,7 +77,6 @@ void ARPGCharacter::Shoot()
 
 	if (!bCanShoot)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Cooldown!"));
 		return;
 	}
 
@@ -89,10 +88,7 @@ void ARPGCharacter::Shoot()
 	if (UWorld* const World = GetWorld())
 	{
 		if (AController* MyInstigator = GetInstigatorController()) {
-
-
 			const FRotator SpawnRotation = GetControlRotation();
-
 
 			const FVector SpawnLocation = GetMesh()->GetSocketLocation(ProjectileAttachmentSocketName);// + SpawnRotation.Vector();
 
@@ -101,9 +97,12 @@ void ARPGCharacter::Shoot()
 			ActorSpawnParams.Instigator = this;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-
 			FTransform SpawnTransform(GetActorForwardVector().Rotation(), SpawnLocation);
+
+			OnPreShootProjectile();
+
 			ARPGProjectile* SpawnedProjectile = World->SpawnActor<ARPGProjectile>(CurrentProjectile, SpawnTransform, ActorSpawnParams);
+
 
 			//it must have LastFired Time
 			if (!LastFired.Contains(CurrentProjectile))
@@ -118,7 +117,8 @@ void ARPGCharacter::Shoot()
 			LastFired[CurrentProjectile] = World->TimeSeconds;
 
 			OnShootProjectile.Broadcast(SpawnedProjectile, *SpawnedProjectile->ProjectileData);
-
+			
+			OnPostShootProjectile(SpawnedProjectile);
 		}
 	}
 
@@ -245,6 +245,7 @@ void ARPGCharacter::EquipProjectile(TSubclassOf<ARPGProjectile> Projectile)
 
 void ARPGCharacter::EquipNextProjectile()
 {
+	OnPreEquipNextProjectile();
 	if (Inventory.Num() > 0)
 	{
 
@@ -261,10 +262,11 @@ void ARPGCharacter::EquipNextProjectile()
 		//else proceed with usual
 		EquipProjectile(NextProjectile);
 
-		UE_LOG(LogTemp, Warning, TEXT("New Projectile: %s"), *NextProjectile->GetName());
+		OnPostEquipNextProjectile();
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Empty Inventory!"));
+		OnEquipNextProjectileIssue();
 	}
 }
 

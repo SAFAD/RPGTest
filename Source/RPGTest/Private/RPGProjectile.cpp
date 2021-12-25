@@ -12,7 +12,7 @@
 // Sets default values
 ARPGProjectile::ARPGProjectile()
 {
-	
+
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
 	CollisionComp->AlwaysLoadOnClient = true;
@@ -66,7 +66,7 @@ ARPGProjectile::ARPGProjectile()
 void ARPGProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (!ProjectileDataRow.IsNull())
 	{
 		ProjectileData = ProjectileDataRow.DataTable->FindRow<FProjectileData>(ProjectileDataRow.RowName, ProjectileDataRow.RowName.ToString());
@@ -81,11 +81,11 @@ void ARPGProjectile::BeginPlay()
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Either the Datatable or the Row name is undefined"));
 	}
-	
+
 }
 void ARPGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-
+	OnProjectileHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 	if (OtherActor != nullptr && OtherActor != this && OtherActor != GetInstigator())
 	{
 		if (ProjectileData->bIsAoe) {
@@ -99,10 +99,14 @@ void ARPGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 
 void ARPGProjectile::ApplyAoeImpact()
 {
+
 	TArray<UPrimitiveComponent*> OverlappedComponents;
+
 	int i = 0;
 
 	AOECollisionComp->GetOverlappingComponents(OverlappedComponents);
+
+	OnPreApplyAoeImpact();
 
 	for (UPrimitiveComponent* OverlappedComponent : OverlappedComponents)
 	{
@@ -113,11 +117,16 @@ void ARPGProjectile::ApplyAoeImpact()
 		ApplyImpact(OverlappedComponent);
 		i++;
 	}
+
+	OnPostApplyAoeImpact();
 }
 
 void ARPGProjectile::ApplyImpact(UPrimitiveComponent* OtherComp)
 {
 	AActor* OtherActor = OtherComp->GetOwner();
+
+	OnPreApplyImpact(OtherActor);
+
 	switch (OtherComp->GetCollisionObjectType()) {
 	case ECC_Pawn:
 		UGameplayStatics::ApplyDamage(OtherActor, ProjectileData->BaseDamage, GetInstigatorController(), GetInstigator(), ProjectileData->DamageTypeClass);
@@ -128,9 +137,12 @@ void ARPGProjectile::ApplyImpact(UPrimitiveComponent* OtherComp)
 	}
 
 	MultiCastPlayImpactEffect();
-	
+
+	OnPostApplyImpact(OtherActor);
+
 	if (ProjectileData->bDestroyOnImpact)
 	{
+		OnPreDestroyProjectile();
 		Destroy();
 	}
 }
