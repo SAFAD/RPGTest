@@ -131,6 +131,21 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProjectile);
 
+	UFUNCTION(BlueprintImplementableEvent, Category = Projectile)
+	void OnPreShootProjectile();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Projectile)
+	void OnPostShootProjectile(ARPGProjectile* Projectile);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Projectile)
+	void OnPreEquipNextProjectile();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Projectile)
+	void OnPostEquipNextProjectile();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Projectile)
+	void OnEquipNextProjectileIssue();
+
 	UPROPERTY(BlueprintAssignable, Category = Projectile)
 		FOnRPGCharacterEquipProjectile OnEquipProjectile;
 
