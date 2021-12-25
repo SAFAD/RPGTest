@@ -87,6 +87,7 @@ protected:
 	* [server] adds a projectile to inventory
 	* @param ProjectileClass	Projectile to add
 	*/
+	UFUNCTION(Server, Reliable)
 	void AddProjectile(TSubclassOf<ARPGProjectile> Projectile);
 
 	/**
@@ -100,6 +101,7 @@ protected:
 	* [server] removes projectile to inventory
 	* @param ProjectileClass Projectile to remove
 	*/
+	UFUNCTION(Server, Reliable)
 	void RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile);
 	
 	/**

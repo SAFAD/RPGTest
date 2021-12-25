@@ -92,7 +92,7 @@ void ARPGCharacter::Shoot()
 
 
 			const FRotator SpawnRotation = GetControlRotation();
-			
+
 
 			const FVector SpawnLocation = GetMesh()->GetSocketLocation(ProjectileAttachmentSocketName);// + SpawnRotation.Vector();
 
@@ -116,7 +116,7 @@ void ARPGCharacter::Shoot()
 			}
 
 			LastFired[CurrentProjectile] = World->TimeSeconds;
-			
+
 			OnShootProjectile.Broadcast(SpawnedProjectile, *SpawnedProjectile->ProjectileData);
 
 		}
@@ -151,7 +151,7 @@ void ARPGCharacter::ServerHandleCooldown_Implementation(TSubclassOf<ARPGProjecti
 	if (GetWorld()->TimeSeconds > ProjectileLastFired + ProjectileCooldown)
 	{
 		bCanShoot = true;
-		
+
 		OnProjectileCooldownEnd.Broadcast(Projectile);
 		return;
 	}
@@ -183,21 +183,37 @@ void ARPGCharacter::SpawnDefaultInventory()
 	}
 }
 
+void ARPGCharacter::AddProjectile_Implementation(TSubclassOf<ARPGProjectile> Projectile)
+{
+
+	Inventory.AddUnique(Projectile);
+
+	BroadcastProjectileAdded(Projectile);
+}
+
+/*
 void ARPGCharacter::AddProjectile(TSubclassOf<ARPGProjectile> Projectile)
 {
 	if (Projectile && GetLocalRole() == ROLE_Authority)
 	{
 		Inventory.AddUnique(Projectile);
-		
+
 	}
 	BroadcastProjectileAdded(Projectile);
 }
-
+*/
 void ARPGCharacter::BroadcastProjectileAdded_Implementation(TSubclassOf<ARPGProjectile> Projectile)
 {
 	OnProjectileAdded.Broadcast(LoadProjectileDataFromClass(Projectile));
 }
 
+void ARPGCharacter::RemoveProjectile_Implementation(TSubclassOf<ARPGProjectile> Projectile)
+{
+	Inventory.RemoveSingle(Projectile);
+	BroadcastProjectileRemoved(Projectile);
+}
+
+/*
 void ARPGCharacter::RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile)
 {
 	if (Projectile && GetLocalRole() == ROLE_Authority)
@@ -205,7 +221,7 @@ void ARPGCharacter::RemoveProjectile(TSubclassOf<ARPGProjectile> Projectile)
 		Inventory.RemoveSingle(Projectile);
 		BroadcastProjectileRemoved(Projectile);
 	}
-}
+}*/
 
 void ARPGCharacter::BroadcastProjectileRemoved_Implementation(TSubclassOf<ARPGProjectile> Projectile)
 {
@@ -296,10 +312,10 @@ void ARPGCharacter::OnRep_CurrentProjectile(TSubclassOf<ARPGProjectile> LastProj
 
 FProjectileData ARPGCharacter::LoadProjectileDataFromClass(TSubclassOf<ARPGProjectile> Projectile)
 {
-	
+
 	ARPGProjectile* item = NewObject<ARPGProjectile>(this, Projectile);
 	FDataTableRowHandle ProjectileDataRow = item->ProjectileDataRow;
-	
+
 	if (!ProjectileDataRow.IsNull())
 	{
 		FProjectileData* ProjectileDataPointer = ProjectileDataRow.DataTable->FindRow<FProjectileData>(ProjectileDataRow.RowName, ProjectileDataRow.RowName.ToString());
